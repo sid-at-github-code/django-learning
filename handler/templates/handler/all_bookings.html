@@ -30,7 +30,11 @@
         </td>
         <td>{{ o.get_status_display }}</td>
         <td>
-          <a href="{% url 'handler:assign_booking' o.id %}">Assign</a>
+          {% if o.delivery %}
+            Assigned (locked)
+          {% else %}
+            <a href="{% url 'handler:assign_booking' o.id %}">Assign</a>
+          {% endif %}
         </td>
       </tr>
     {% empty %}

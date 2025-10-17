@@ -47,11 +47,19 @@ def order_detail(request, order_id):
 
     order = get_object_or_404(Order, id=order_id)
 
-    # Only assigned delivery guy can update status, or customer/admin can view
-    can_update = (user.role == 'delivery' and order.delivery and order.delivery.id == user.id)
+    # Only assigned delivery guy can update status, and only if not already delivered
+    can_update = (
+        user.role == 'delivery'
+        and order.delivery
+        and order.delivery.id == user.id
+        and order.status != 'delivered'
+    )
 
     if request.method == 'POST' and can_update:
         new_status = request.POST.get('status')
+        # Prevent any change once delivered
+        if order.status == 'delivered':
+            return redirect('bookings:order_detail', order_id=order.id)
         if new_status in dict(Order.STATUS_CHOICES).keys():
             order.status = new_status
             # If delivered, disable chat
@@ -60,8 +68,8 @@ def order_detail(request, order_id):
             order.save()
         return redirect('bookings:order_detail', order_id=order.id)
 
-    # pass status choices for template iteration
-    status_choices = Order.STATUS_CHOICES
+    # pass status choices for template iteration; if delivered, only show delivered
+    status_choices = Order.STATUS_CHOICES if order.status != 'delivered' else (('delivered', 'Delivered'),)
 
     return render(request, 'bookings/order_detail.html', {
         'order': order,

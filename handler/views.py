@@ -32,6 +32,14 @@ def assign_booking(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     delivery_guys = User.objects.filter(role='delivery')
 
+    # If already assigned, lock assignment permanently
+    if order.delivery is not None:
+        return render(request, 'handler/assign_booking.html', {
+            'order': order,
+            'delivery_guys': delivery_guys,
+            'error': 'Delivery partner already assigned. Assignment is locked.'
+        })
+
     if request.method == 'POST':
         delivery_id = request.POST.get('delivery_id')
         if delivery_id:

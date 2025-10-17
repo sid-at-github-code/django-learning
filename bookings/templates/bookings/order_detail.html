@@ -28,6 +28,8 @@
       {% if user and user.role == 'delivery' %}
         {% if order.delivery and user.id != order.delivery.id %}
           You are not assigned to this order.
+        {% elif order.status == 'delivered' %}
+          Status is Delivered and locked.
         {% endif %}
       {% endif %}
     </p>
