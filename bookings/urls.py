@@ -1,0 +1,13 @@
+# bookings/urls.py
+
+from django.urls import path
+from . import views
+
+app_name = 'bookings'
+
+urlpatterns = [
+    path('create/', views.create_order, name='create_order'),
+    path('list/', views.list_orders, name='list_orders'),
+    path('<int:order_id>/', views.order_detail, name='order_detail'),
+    path('delivery/', views.delivery_orders, name='delivery_orders'),
+]

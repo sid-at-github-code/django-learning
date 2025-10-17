@@ -1,0 +1,36 @@
+<h2>Order {{ order.id }}</h2>
+
+  <p><strong>Customer:</strong> {{ order.customer.phone }}</p>
+  <p><strong>Details:</strong> {{ order.details }}</p>
+  <p><strong>Status:</strong> {{ order.get_status_display }}</p>
+  <p><strong>Delivery:</strong>
+    {% if order.delivery %}
+      {{ order.delivery.phone }}
+    {% else %}
+      Unassigned
+    {% endif %}
+  </p>
+
+  {% if can_update %}
+    <h3>Update Status</h3>
+    <form method="post">
+      {% csrf_token %}
+      <select name="status">
+        {% for key, label in status_choices %}
+          <option value="{{ key }}" {% if order.status == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit">Update</button>
+    </form>
+  {% else %}
+    <!-- Show status history or a friendly message -->
+    <p>
+      {% if user and user.role == 'delivery' %}
+        {% if order.delivery and user.id != order.delivery.id %}
+          You are not assigned to this order.
+        {% endif %}
+      {% endif %}
+    </p>
+  {% endif %}
+
+  <p><a href="{% url 'bookings:list_orders' %}">Back to orders</a></p>

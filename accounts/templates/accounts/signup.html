@@ -1,0 +1,16 @@
+<h2>Signup</h2>
+<form method="post">
+    {% csrf_token %}
+    Phone: <input type="text" name="phone"><br>
+    Password: <input type="password" name="password"><br>
+    Role: 
+    <select name="role">
+        <option value="customer">Customer</option>
+        <option value="delivery">Delivery Guy</option>
+    </select><br>
+    OTP: <input type="text" name="otp"><br>
+    <button type="submit">Signup</button>
+</form>
+{% if error %}
+<p style="color:red;">{{ error }}</p>
+{% endif %}

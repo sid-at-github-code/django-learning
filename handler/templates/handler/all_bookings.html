@@ -1,0 +1,43 @@
+<!-- handler/templates/handler/all_bookings.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>All Orders (Admin)</title>
+</head>
+<body>
+  <h2>All Orders (Admin)</h2>
+
+  <table border="1" cellpadding="6">
+    <tr>
+      <th>ID</th>
+      <th>Customer</th>
+      <th>Delivery</th>
+      <th>Status</th>
+      <th>Action</th>
+    </tr>
+
+    {% for o in orders %}
+      <tr>
+        <td>{{ o.id }}</td>
+        <td>{{ o.customer.phone }}</td>
+        <td>
+          {% if o.delivery %}
+            {{ o.delivery.phone }}
+          {% else %}
+            Unassigned
+          {% endif %}
+        </td>
+        <td>{{ o.get_status_display }}</td>
+        <td>
+          <a href="{% url 'handler:assign_booking' o.id %}">Assign</a>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5">No orders</td></tr>
+    {% endfor %}
+  </table>
+
+  <p><a href="{% url 'accounts:login' %}">Logout / Back to login</a></p>
+</body>
+</html>

@@ -1,0 +1,14 @@
+
+
+<!-- bookings/templates/bookings/create_order.html -->
+
+
+<h2>Create Order (Customer)</h2>
+
+<form method="post">
+  {% csrf_token %}
+  <label>Order details:</label><br>
+  <textarea name="details" rows="4" cols="40" placeholder="e.g. 2x Burger, 1x Coke"></textarea><br>
+  <button type="submit">Create Order</button>
+</form>
+<p><a href="{% url 'bookings:list_orders' %}">My Orders</a></p>

@@ -1,0 +1,37 @@
+ <h2>Orders</h2>
+
+  {% if user.role == 'customer' %}
+    <p><a href="{% url 'bookings:create_order' %}">Create new order</a></p>
+  {% endif %}
+
+  <table border="1" cellpadding="6">
+    <tr>
+      <th>ID</th>
+      <th>Details</th>
+      <th>Status</th>
+      <th>Delivery</th>
+      <th>Actions</th>
+    </tr>
+
+    {% for o in orders %}
+      <tr>
+        <td>{{ o.id }}</td>
+        <td>{{ o.details|default:"-" }}</td>
+        <td>{{ o.get_status_display }}</td>
+        <td>
+          {% if o.delivery %}
+            {{ o.delivery.phone }}
+          {% else %}
+            Unassigned
+          {% endif %}
+        </td>
+        <td>
+          <a href="{% url 'bookings:order_detail' o.id %}">View</a>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5">No orders found</td></tr>
+    {% endfor %}
+  </table>
+
+  <p><a href="{% url 'accounts:login' %}">Logout / Back to login</a></p>

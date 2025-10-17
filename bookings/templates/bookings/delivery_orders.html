@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>My Assigned Orders</title>
+</head>
+<body>
+  <h2>My Assigned Orders</h2>
+
+  {% if orders %}
+    <table border="1" cellpadding="6">
+      <tr>
+        <th>ID</th>
+        <th>Customer</th>
+        <th>Details</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+
+      {% for o in orders %}
+        <tr>
+          <td>{{ o.id }}</td>
+          <td>{{ o.customer.phone }}</td>
+          <td>{{ o.details|default:"-" }}</td>
+          <td>{{ o.get_status_display }}</td>
+          <td>
+            <a href="{% url 'bookings:order_detail' o.id %}">View / Update</a>
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>No assigned orders yet.</p>
+  {% endif %}
+
+  <p><a href="{% url 'accounts:login' %}">Logout</a></p>
+</body>
+</html>

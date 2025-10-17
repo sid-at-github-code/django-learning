@@ -1,0 +1,22 @@
+
+
+<!-- handler/templates/handler/assign_booking.html -->
+
+<h2>Assign Delivery Guy for Order {{ order.id }}</h2>
+<p><strong>Customer:</strong> {{ order.customer.phone }}</p>
+<p><strong>Details:</strong> {{ order.details }}</p>
+
+<form method="post">
+  {% csrf_token %}
+  <label>Select delivery guy:</label>
+  <select name="delivery_id">
+    {% for d in delivery_guys %}
+      <option value="{{ d.id }}">{{ d.phone }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Asign</button>
+</form>
+
+<!--pck and place stuff -->
+
+<p><a href="{% url 'handler:all_bookings' %}">Back to all orders</a></p>

@@ -1,0 +1,15 @@
+
+<h2>Login</h2>
+<form method="post">
+  {% csrf_token %}
+  <input type="text" name="phone" placeholder="Phone">
+  <input type="password" name="password" placeholder="Password">
+  <button type="submit">Login</button>
+  {% if error %}
+    <p style="color:red">{{ error }}</p>
+  {% endif %}
+</form>
+{% if error %}
+<p style="color:red;">{{ error }}</p>
+{% endif %}
+<p>Don't have an account? <a href="{% url 'accounts:signup' %}">Sign up</a></p>

@@ -1,0 +1,28 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Django cache & compiled files
+db.sqlite3
+*.log
+*.pot
+*.pyc
+*.mo
+
+# Environment & virtualenv
+.env
+venv/
+env/
+
+# IDE/editor files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Django cache folders (if you have any)
+cache/
+*.cache/
