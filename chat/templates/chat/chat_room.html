@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat - Order {{ order.id }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .chat-header {
+            background: #007bff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        .chat-header h2 {
+            margin: 0;
+        }
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f9f9f9;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 70%;
+        }
+        .message.customer {
+            background: #007bff;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        .message.delivery {
+            background: #28a745;
+            color: white;
+            margin-right: auto;
+        }
+        .message-info {
+            font-size: 0.8em;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        .chat-input {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #eee;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .input-group button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .input-group button:hover {
+            background: #0056b3;
+        }
+        .input-group button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .order-info {
+            background: #e9ecef;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .connection-status {
+            padding: 5px 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            text-align: center;
+        }
+        .connection-status.connecting {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .connection-status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        .connection-status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>Chat - Order #{{ order.id }}</h2>
+            <p>Chatting with: {{ other_participant.phone }} ({{ other_participant.role|title }})</p>
+        </div>
+        
+        <div class="order-info">
+            <strong>Order Details:</strong> {{ order.details }}<br>
+            <strong>Status:</strong> {{ order.status|title }}<br>
+            <strong>Created:</strong> {{ order.created_at|date:"M d, Y H:i" }}
+        </div>
+        
+        <div class="connection-status connecting" id="connection-status">
+            Connecting to chat...
+        </div>
+        
+        <div class="chat-messages" id="chat-messages">
+            {% for message in messages %}
+                <div class="message {{ message.sender.role }}">
+                    <div class="message-info">
+                        {{ message.sender.phone }} - {{ message.timestamp|date:"M d, H:i" }}
+                    </div>
+                    {{ message.content }}
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div class="chat-input">
+            <div class="input-group">
+                <input type="text" id="message-input" placeholder="Type your message..." maxlength="500" disabled>
+                <button id="send-button" disabled>Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        const orderId = {{ order.id }};
+        const userRole = '{{ user_role }}';
+        
+        // WebSocket connection
+        let chatSocket;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+        
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            chatSocket = new WebSocket(
+                protocol + '//' + window.location.host + '/ws/chat/' + orderId + '/'
+            );
+            
+            chatSocket.onopen = function(e) {
+                console.log('WebSocket connection opened');
+                reconnectAttempts = 0;
+                document.getElementById('send-button').disabled = false;
+                document.getElementById('message-input').disabled = false;
+                
+                // Update connection status
+                const statusDiv = document.getElementById('connection-status');
+                statusDiv.className = 'connection-status connected';
+                statusDiv.textContent = 'Connected to chat';
+            };
+            
+            chatSocket.onmessage = function(e) {
+                try {
+                    const data = JSON.parse(e.data);
+                    
+                    // Handle error messages
+                    if (data.error) {
+                        console.error('Chat error:', data.error);
+                        const statusDiv = document.getElementById('connection-status');
+                        statusDiv.className = 'connection-status disconnected';
+                        statusDiv.textContent = 'Error: ' + data.error;
+                        return;
+                    }
+                    
+                    // Create message element
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message ' + data.sender_role;
+                    
+                    const infoDiv = document.createElement('div');
+                    infoDiv.className = 'message-info';
+                    infoDiv.textContent = data.sender + ' - ' + new Date(data.timestamp).toLocaleString();
+                    
+                    const contentDiv = document.createElement('div');
+                    contentDiv.textContent = data.message;
+                    
+                    messageDiv.appendChild(infoDiv);
+                    messageDiv.appendChild(contentDiv);
+                    
+                    // Add to messages container
+                    document.querySelector('#chat-messages').appendChild(messageDiv);
+                    
+                    // Scroll to bottom
+                    const messagesContainer = document.querySelector('#chat-messages');
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                } catch (error) {
+                    console.error('Error parsing message:', error);
+                }
+            };
+            
+            chatSocket.onerror = function(e) {
+                console.error('WebSocket error:', e);
+                const statusDiv = document.getElementById('connection-status');
+                statusDiv.className = 'connection-status disconnected';
+                statusDiv.textContent = 'Connection error occurred';
+            };
+            
+            chatSocket.onclose = function(e) {
+                console.log('Chat socket closed. Code:', e.code, 'Reason:', e.reason);
+                document.getElementById('send-button').disabled = true;
+                document.getElementById('message-input').disabled = true;
+                
+                // Update connection status
+                const statusDiv = document.getElementById('connection-status');
+                statusDiv.className = 'connection-status disconnected';
+                
+                // Try to reconnect if not a normal closure
+                if (e.code !== 1000 && reconnectAttempts < maxReconnectAttempts) {
+                    statusDiv.textContent = 'Disconnected. Attempting to reconnect... (' + (reconnectAttempts + 1) + '/' + maxReconnectAttempts + ')';
+                    reconnectAttempts++;
+                    setTimeout(connectWebSocket, 3000);
+                } else {
+                    statusDiv.textContent = 'Disconnected from chat. Please refresh the page.';
+                }
+            };
+        }
+        
+        // Start the connection
+        connectWebSocket();
+        
+        // Send message
+        function sendMessage() {
+            const messageInput = document.getElementById('message-input');
+            const message = messageInput.value.trim();
+            
+            if (message && chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+                chatSocket.send(JSON.stringify({
+                    'message': message
+                }));
+                messageInput.value = '';
+            } else if (!chatSocket || chatSocket.readyState !== WebSocket.OPEN) {
+                console.error('WebSocket is not connected');
+                const statusDiv = document.getElementById('connection-status');
+                statusDiv.className = 'connection-status disconnected';
+                statusDiv.textContent = 'Not connected. Please wait for connection.';
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('send-button').addEventListener('click', sendMessage);
+        
+        document.getElementById('message-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Auto-scroll to bottom on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const messagesContainer = document.querySelector('#chat-messages');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        });
+    </script>
+</body>
+</html>

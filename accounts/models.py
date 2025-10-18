@@ -9,7 +9,7 @@ class User(models.Model):
     ROLE_CHOICES = (
         ('customer', 'Customer'),
         ('delivery', 'Delivery Guy'),
-        ('admin', 'Admin'),
+        ('handler', 'Handler'),
     )
 
     phone = models.CharField(max_length=15, unique=True)

@@ -37,7 +37,7 @@ def list_orders(request):
         return render(request, 'bookings/list_orders.html', {'orders': orders, 'user': user})
     elif user.role == 'delivery':
         return redirect('bookings:delivery_orders')
-    elif user.role == 'admin':
+    elif user.role == 'handler':
         return redirect('handler:all_bookings')
 # Order detail / update status (delivery guy updates status)
 def order_detail(request, order_id):

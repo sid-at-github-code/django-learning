@@ -17,7 +17,7 @@ def get_current_user(request):
 # Admin / handler: view all orders
 def all_bookings(request):
     user = get_current_user(request)
-    if not user or user.role != 'admin':
+    if not user or user.role != 'handler':
         return redirect('accounts:login')
 
     orders = Order.objects.order_by('-created_at')
@@ -26,7 +26,7 @@ def all_bookings(request):
 # Admin / handler: assign a delivery guy to an order
 def assign_booking(request, order_id):
     user = get_current_user(request)
-    if not user or user.role != 'admin':
+    if not user or user.role != 'handler':
         return redirect('accounts:login')
 
     order = get_object_or_404(Order, id=order_id)
