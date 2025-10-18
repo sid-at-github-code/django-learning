@@ -11,11 +11,18 @@ def signup(request):
         password = request.POST['password']
         role = request.POST['role']
         otp = request.POST['otp']
-        if otp == '1234':  # dummy OTP as mentionaed for assignment in mail
+        # Check OTP based on role
+        if role == 'handler' and otp == 'DRIVEU99':
+            User.objects.create(phone=phone, password=password, role=role)
+            return redirect('accounts:login')
+        elif role != 'handler' and otp == '1234':
             User.objects.create(phone=phone, password=password, role=role)
             return redirect('accounts:login')
         else:
-            return render(request, 'accounts/signup.html', {'error': 'Invalid OTP'})
+            if role == 'handler':
+                return render(request, 'accounts/signup.html', {'error': 'Invalid OTP for Handler. Use: DRIVEU99'})
+            else:
+                return render(request, 'accounts/signup.html', {'error': 'Invalid OTP. Use: 1234'})
     return render(request, 'accounts/signup.html')
 
 # Login page
@@ -32,12 +39,12 @@ def login_view(request):
             request.session['role'] = user.role
 
             # Redirect based on role
-            if user.role == 'admin':
+            if user.role == 'handler':
                 return redirect('handler:all_bookings')
             elif user.role == 'customer':
                 return redirect('bookings:list_orders')
             elif user.role == 'delivery':
-                return redirect('bookings:delivery_orders')  # THIS WAS MISSING
+                return redirect('bookings:delivery_orders')
         except User.DoesNotExist:
             return render(request, 'accounts/login.html', {'error': 'Invalid credentials'})
 
